@@ -182,3 +182,24 @@ func main() {
 ```
 
 </details>
+
+## Gapless decoding
+
+MP3 encoders pad the start and end of a stream with silent samples, which
+become audible gaps when files are concatenated. `NewDecoderGapless` and
+`DecodeFullGapless` read the encoder delay and end padding recorded in the
+Xing/LAME tag and deliver only the valid PCM samples, so tracks can be
+joined seamlessly. The number of valid samples per channel is reported as
+`dec.ValidSamples` (`-1` while it is still unknown).
+
+``` golang
+dec, data, err := minimp3.DecodeFullGapless(file)
+if err != nil {
+	log.Fatal(err)
+}
+log.Printf("valid samples per channel: %d", dec.ValidSamples)
+```
+
+Files without usable gapless metadata are decoded exactly as with
+`NewDecoder`/`DecodeFull`, and contradictory or corrupt metadata disables
+trimming for that stream.
